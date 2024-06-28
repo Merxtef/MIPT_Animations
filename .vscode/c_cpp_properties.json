@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}/sources/**",
+                "${workspaceFolder}/sources/main/**",
+                "${workspaceFolder}/sources/render/**",
+                "${workspaceFolder}/sources/engine/**",
+                "${workspaceFolder}/sources/3rd_party/**",
+            ],
+            "defines": [],
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

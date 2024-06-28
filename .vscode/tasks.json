@@ -1,0 +1,24 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build and configure project",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "command": "./Tools/build_script.sh",
+            "args": [
+                "${config:launchOption.currentConfig.BuildType}",
+                "yes"
+            ],
+            "windows": {
+                "command": "Tools/build_script.bat"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

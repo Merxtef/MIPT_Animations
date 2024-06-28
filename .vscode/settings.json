@@ -1,0 +1,27 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.associations": {
+    "memory": "cpp"
+  },
+  "launchOption.options": {
+    "BuildType": [
+      {
+        "name": "Debug",
+        "value": "dbg"
+      },
+      {
+        "name": "Develop",
+        "value": "dev"
+      },
+      {
+        "name": "Release",
+        "value": "rel"
+      }
+    ],
+  },
+  "launchOption.currentConfig": {
+    "BuildType": "dev"
+  },
+
+}
