@@ -2,5 +2,5 @@ Builds/*
 !Builds/assimp.lib
 !Builds/libSDL2.a
 
-resources
+resources/*
 !resources/.gitkeep
