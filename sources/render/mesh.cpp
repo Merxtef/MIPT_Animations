@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <log.h>
+#include <map>
 #include "glad/glad.h"
 
 
@@ -130,7 +131,42 @@ MeshPtr create_mesh(const aiMesh *mesh)
       weights[i] *= 1.f / s;
     }
   }
-  return create_mesh(indices, vertices, normals, uv, weights, weightsIndex);
+  auto meshPtr = create_mesh(indices, vertices, normals, uv, weights, weightsIndex);
+
+  if (mesh->HasBones())
+  {
+    const int numBones = mesh->mNumBones;
+
+    meshPtr->bones.resize(numBones);
+    std::map<aiNode*, size_t> nodeToId;
+
+    for (size_t i = 0; i < numBones; ++i)
+    {
+      const aiBone* bone = mesh->mBones[i];
+      assert(bone->mNode != nullptr);
+      mat4x4 offsetM = make_mat4x4(&bone->mOffsetMatrix.a1);
+      meshPtr->bones[i].bPoseInv = transpose(offsetM);
+      meshPtr->bones[i].bPose = inverse(meshPtr->bones[i].bPoseInv);
+      meshPtr->bones[i].name = std::string(bone->mName.C_Str());
+      meshPtr->bones[i].id = i;
+
+      nodeToId[bone->mNode] = i;
+    }
+
+    nodeToId[nullptr] = -1;
+
+    for (size_t i = 0; i < numBones; ++i)
+    {
+      const aiNode* curNode = mesh->mBones[i]->mNode;
+
+      if (curNode == nullptr)
+        continue;
+
+      meshPtr->bones[i].parentId = nodeToId[curNode->mParent];
+    }
+  }
+
+  return meshPtr;
 }
 
 MeshPtr load_mesh(const char *path, int idx)
@@ -141,7 +177,7 @@ MeshPtr load_mesh(const char *path, int idx)
   importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1.f);
 
   importer.ReadFile(path, aiPostProcessSteps::aiProcess_Triangulate | aiPostProcessSteps::aiProcess_LimitBoneWeights |
-    aiPostProcessSteps::aiProcess_GenNormals | aiProcess_GlobalScale | aiProcess_FlipWindingOrder);
+    aiPostProcessSteps::aiProcess_GenNormals | aiProcess_GlobalScale | aiProcess_FlipWindingOrder | aiProcess_PopulateArmatureData);
 
   const aiScene* scene = importer.GetScene();
   if (!scene)
@@ -166,4 +202,9 @@ MeshPtr make_plane_mesh()
   std::vector<vec3> normals(4, vec3(0,1,0));
   std::vector<vec2> uv = {vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1)};
   return create_mesh(indices, vertices, normals, uv);
+}
+
+MeshPtr make_mesh(const std::vector<uint32_t> &indices, const std::vector<vec3> &vertices, const std::vector<vec3> &normals)
+{
+  return create_mesh(indices, vertices, normals);
 }

@@ -4,6 +4,7 @@
 #include <render/mesh.h>
 #include "camera.h"
 #include <application.h>
+#include <render/arrow_renderer.h>
 
 struct UserCamera
 {
@@ -68,6 +69,8 @@ void game_init()
     std::move(material)
   });
   std::fflush(stdout);
+
+  init_arrow();
 }
 
 
@@ -79,6 +82,13 @@ void game_update()
     get_delta_time());
 }
 
+vec3 get_color(int i)
+{
+  vec3 v = vec3(0, 0, 0);
+  v[i%3] = 1.f;
+  return v;
+}
+
 void render_character(const Character &character, const mat4 &cameraProjView, vec3 cameraPosition, const DirectionLight &light)
 {
   const Material &material = *character.material;
@@ -87,13 +97,19 @@ void render_character(const Character &character, const mat4 &cameraProjView, ve
   shader.use();
   material.bind_uniforms_to_shader();
   shader.set_mat4x4("Transform", character.transform);
-  shader.set_mat4x4("ViewProjection", cameraProjView);
-  shader.set_vec3("CameraPosition", cameraPosition);
-  shader.set_vec3("LightDirection", glm::normalize(light.lightDirection));
+  shader.set_mat4x4("ViewProj", cameraProjView);
+  shader.set_vec3("CameraPos", cameraPosition);
+  shader.set_vec3("LightDir", glm::normalize(light.lightDirection));
   shader.set_vec3("AmbientLight", light.ambient);
-  shader.set_vec3("SunLight", light.lightColor);
+  shader.set_vec3("LightColor", light.lightColor);
 
   render(character.mesh);
+
+  for (size_t i = 0; i < character.mesh->bones.size(); ++i)
+  {
+    const auto &bone = character.mesh->bones[i];
+    draw_arrow(character.mesh->bones[bone.parentId].bPose * vec4(0, 0, 0, 1), bone.bPose * vec4(0, 0, 0, 1), get_color(i), 0.01f);
+  }
 }
 
 void game_render()
@@ -111,4 +127,6 @@ void game_render()
 
   for (const Character &character : scene->characters)
     render_character(character, projView, glm::vec3(transform[3]), scene->light);
+  
+  render_arrows(projView, vec3(transform[3]), scene->light);
 }
